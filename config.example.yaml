@@ -1,0 +1,67 @@
+# Firedancer Tile Monitor — example configuration
+# Copy to config.yaml and adjust for your validator setup.
+
+# How often to poll metrics (seconds)
+refresh_interval_s: 1.0
+
+# How many alerts to show in the dashboard footer
+max_alert_display: 10
+
+# ─── Backend ────────────────────────────────────────────────────────────────
+backend:
+  # One of: prometheus | shm | fdctl | simulator
+  type: prometheus
+
+  # Prometheus / HTTP settings (used when type=prometheus)
+  metrics_url: "http://127.0.0.1:7999/metrics"
+  scrape_interval_s: 1.0
+  request_timeout_s: 5.0
+
+  # fdctl settings (used when type=fdctl)
+  fdctl_bin: "/usr/local/bin/fdctl"
+  fdctl_config: "/etc/firedancer/config.toml"
+
+  # Shared-memory settings (Linux only, used when type=shm)
+  # Points to the Firedancer workspace shared-memory directory.
+  shm_path: "/dev/shm/fd1"
+
+  # Simulator settings (used when type=simulator)
+  sim_tile_count: 18          # total tile instances to simulate
+  sim_anomaly_rate: 0.03      # probability of an anomaly per second per tile
+
+# ─── Alert thresholds ────────────────────────────────────────────────────────
+thresholds:
+  # Warn / crit if no heartbeat received for this many seconds
+  heartbeat_stale_warn_s: 3.0
+  heartbeat_stale_crit_s: 8.0
+
+  # Warn / crit if tile lags heartbeat this many times per second
+  heartbeat_lag_rate_warn: 0.5
+  heartbeat_lag_rate_crit: 2.0
+
+  # Warn / crit for link queue fill percentage
+  link_fill_warn_pct: 75.0
+  link_fill_crit_pct: 90.0
+
+  # Per-tile threshold overrides (tile name → threshold key → value)
+  tile_overrides:
+    # Example: give the repair tile a looser stale threshold
+    # repair:
+    #   heartbeat_stale_warn_s: 10.0
+
+# ─── Alert delivery ─────────────────────────────────────────────────────────
+alerts:
+  # Path to write alert lines (append mode).  null = disabled.
+  log_file: null   # e.g. "/var/log/fdmon/alerts.log"
+
+  # Discord or Slack incoming webhook URL.  null = disabled.
+  webhook_url: null   # e.g. "https://discord.com/api/webhooks/..."
+
+  # Ring terminal bell on CRITICAL alerts
+  sound: true
+
+  # Suppress duplicate alerts for the same tile+condition within this window
+  dedup_window_s: 60.0
+
+  # Maximum alert history to keep in memory
+  max_history: 200
